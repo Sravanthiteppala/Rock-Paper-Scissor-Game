@@ -3,432 +3,363 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ Cyber Arena: Rock Paper Scissors</title>
+    <title>Quantum Clash: RPS</title>
     <style>
         :root {
-            --bg-dark: #060814;
-            --neon-cyan: #00f2fe;
-            --neon-magenta: #ff007f;
-            --neon-purple: #7928ca;
-            --text-light: #ffffff;
-            --card-bg: rgba(255, 255, 255, 0.03);
-            --border-glow: rgba(255, 255, 255, 0.1);
+            --bg: #0b0914;
+            --panel-bg: rgba(20, 16, 38, 0.6);
+            --border: rgba(255, 255, 255, 0.05);
+            --neon-orange: #ff5e00;
+            --neon-blue: #00bfff;
+            --neon-green: #00ff66;
+            --neon-pink: #ff007f;
+            --text-main: #ffffff;
+            --text-muted: #8b85b1;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            user-select: none;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-light);
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 0, 127, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 191, 255, 0.1) 0%, transparent 40%);
+            color: var(--text-main);
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            overflow-x: hidden;
-            position: relative;
+            padding: 20px;
         }
 
-        /* Cyberpunk Ambient Lights */
-        body::before, body::after {
-            content: '';
-            position: absolute;
-            width: 450px;
-            height: 450px;
-            border-radius: 50%;
-            filter: blur(150px);
-            opacity: 0.15;
-            z-index: -1;
+        /* Main Game Wrapper */
+        .game-wrapper {
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 900px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
         }
-        body::before { top: -5%; left: -5%; background: var(--neon-cyan); }
-        body::after { bottom: -5%; right: -5%; background: var(--neon-magenta); }
 
+        /* Title Area */
         h1 {
             font-size: 2.5rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 4px;
-            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta));
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 2rem;
-            text-align: center;
-            text-shadow: 0 0 30px rgba(0, 242, 254, 0.2);
+            text-shadow: 0 0 20px rgba(0, 191, 255, 0.2);
         }
 
-        /* Arena Wrapper */
-        .arena-container {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-glow);
-            border-radius: 32px;
-            padding: 2.5rem;
-            width: 90%;
-            max-width: 750px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
-            text-align: center;
-        }
-
-        /* Scoreboard & Health Bars */
-        .scoreboard {
+        /* Header / Profile & Scoreboards */
+        .header-panel {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 3rem;
-            gap: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 15px 30px;
+            margin-bottom: 40px;
         }
 
-        .player-side {
-            flex: 1;
-        }
-
-        .player-side h2 {
-            font-size: 1.1rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #8a99ad;
-            margin-bottom: 0.5rem;
-        }
-
-        .health-bar-bg {
-            background: rgba(255, 255, 255, 0.05);
-            height: 12px;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .health-bar {
-            height: 100%;
-            width: 100%;
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        #player-health { background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple)); }
-        #cpu-health { background: linear-gradient(90deg, var(--neon-purple), var(--neon-magenta)); }
-
-        .vs-divider {
-            font-size: 1.5rem;
-            font-weight: 900;
-            font-style: italic;
-            color: #475569;
-        }
-
-        /* Battle Showcase Stage */
-        .battle-stage {
+        .profile {
             display: flex;
-            justify-content: space-around;
             align-items: center;
-            height: 140px;
-            margin-bottom: 3rem;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.02);
-            position: relative;
+            gap: 15px;
         }
 
-        .weapon-preview {
-            font-size: 4.5rem;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.1));
-        }
-
-        .weapon-preview.shake-left { animation: shakeLeft 0.5s infinite; }
-        .weapon-preview.shake-right { animation: shakeRight 0.5s infinite; }
-
-        @keyframes shakeLeft {
-            0%, 100% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(-15deg) scale(1.1); }
-        }
-        @keyframes shakeRight {
-            0%, 100% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(15deg) scale(1.1); }
-        }
-
-        .result-banner {
-            position: absolute;
-            font-weight: 800;
-            font-size: 1.3rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            padding: 6px 20px;
-            border-radius: 30px;
-            background: rgba(6, 8, 20, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            opacity: 0;
-            transform: scale(0.8);
-            transition: all 0.3s ease;
-        }
-
-        .result-banner.show {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        /* Interactive Choice Cards */
-        .choices-container {
+        .avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
             display: flex;
+            align-items: center;
             justify-content: center;
-            gap: 20px;
+            font-size: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid transparent;
         }
 
-        .choice-card {
+        .player-one .avatar { border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(0, 191, 255, 0.3); }
+        .system-ai .avatar { border-color: var(--neon-pink); box-shadow: 0 0 10px rgba(255, 0, 127, 0.3); }
+
+        .profile-info { text-align: left; }
+        .profile-info .label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .profile-info .name { font-weight: 600; font-size: 1rem; }
+
+        .score-display {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: 5px;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 5px 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+        .score-display span#p-score { color: var(--neon-blue); }
+        .score-display span#ai-score { color: var(--neon-pink); }
+
+        /* Hexagonal / Styled Weapon Grid */
+        .weapons-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .weapon-card {
             background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-glow);
+            border: 2px solid var(--border);
             border-radius: 20px;
-            padding: 1.5rem;
+            padding: 30px 20px;
             cursor: pointer;
-            flex: 1;
-            max-width: 140px;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 20px;
         }
 
-        .choice-card .icon {
+        /* Unique Glow Themes per Weapon */
+        .weapon-card[data-weapon="rock"] { --theme: var(--neon-orange); }
+        .weapon-card[data-weapon="paper"] { --theme: var(--neon-blue); }
+        .weapon-card[data-weapon="scissors"] { --theme: var(--neon-green); }
+
+        .weapon-icon-box {
+            width: 90px;
+            height: 90px;
+            border-radius: 24px;
+            border: 2px solid var(--theme);
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
             font-size: 3rem;
+            box-shadow: inset 0 0 15px rgba(255,255,255,0.05), 0 0 15px calc(var(--theme));
             transition: transform 0.3s ease;
         }
 
-        .choice-card .label {
-            font-size: 0.85rem;
+        .weapon-btn {
+            width: 100%;
+            background: transparent;
+            border: 2px solid var(--theme);
+            color: #fff;
+            padding: 12px 0;
+            border-radius: 12px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #94a3b8;
+            letter-spacing: 1.5px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(var(--theme), 0.2);
+            transition: all 0.3s ease;
         }
 
-        .choice-card:hover {
-            background: rgba(255, 255, 255, 0.06);
-            transform: translateY(-8px);
-            border-color: var(--neon-cyan);
-            box-shadow: 0 10px 25px rgba(0, 242, 254, 0.15);
+        /* Hover Mechanics */
+        .weapon-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--theme);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        }
+        .weapon-card:hover .weapon-icon-box {
+            transform: scale(1.08);
+        }
+        .weapon-card:hover .weapon-btn {
+            background: var(--theme);
+            color: #000;
+            box-shadow: 0 0 20px var(--theme);
         }
 
-        .choice-card:hover .icon {
-            transform: scale(1.2);
-        }
-
-        .choice-card:active {
-            transform: translateY(-2px);
-        }
-
-        /* Action Overlay Screen (Win/Lose Modal framework) */
-        .overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(6, 8, 20, 0.95);
-            backdrop-filter: blur(10px);
+        /* Result Panel Footer */
+        .result-panel {
+            background: rgba(7, 5, 15, 0.8);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 25px;
+            min-height: 130px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 10;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
+            gap: 8px;
+            transition: all 0.3s ease;
         }
 
-        .overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .overlay h2 {
-            font-size: 3.5rem;
-            font-weight: 900;
-            text-transform: uppercase;
-            margin-bottom: 1.5rem;
-            letter-spacing: 4px;
-        }
-
-        .btn-restart {
-            padding: 14px 40px;
-            border: none;
-            border-radius: 50px;
-            font-weight: 700;
+        .result-title {
+            font-size: 1.6rem;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 2px;
-            cursor: pointer;
-            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta));
-            color: white;
-            box-shadow: 0 0 30px rgba(255, 0, 127, 0.4);
-            transition: transform 0.2s ease;
         }
 
-        .btn-restart:hover {
-            transform: scale(1.05);
+        .result-details {
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+        .result-details strong {
+            text-transform: uppercase;
         }
 
-        /* Utilities */
-        .cyan-text { color: var(--neon-cyan) !important; text-shadow: 0 0 15px rgba(0,242,254,0.4); }
-        .magenta-text { color: var(--neon-magenta) !important; text-shadow: 0 0 15px rgba(255,0,127,0.4); }
+        /* Responsive Breakpoints */
+        @media (max-width: 768px) {
+            .game-wrapper { padding: 25px 20px; }
+            h1 { font-size: 1.9rem; margin-bottom: 20px; }
+            .header-panel { padding: 12px 15px; gap: 10px; margin-bottom: 25px; }
+            .profile-info { display: none; } /* Compact Mode for Mobile Avatars */
+            .weapons-grid { grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; }
+            .weapon-card { flex-direction: row; padding: 15px; justify-content: space-between; }
+            .weapon-icon-box { width: 60px; height: 60px; font-size: 2rem; border-radius: 14px; }
+            .weapon-btn { width: 140px; }
+            .result-title { font-size: 1.3rem; }
+        }
     </style>
 </head>
 <body>
 
-    <h1>Cyber Arena</h1>
+    <div class="game-wrapper">
+        <!-- Interactive Game Title -->
+        <h1>Quantum Clash: RPS</h1>
 
-    <div class="arena-container">
-        <!-- Scoreboard & Health bars -->
-        <div class="scoreboard">
-            <div class="player-side">
-                <h2>Player</h2>
-                <div class="health-bar-bg">
-                    <div class="health-bar" id="player-health"></div>
+        <!-- High-Fidelity Score Board Grid -->
+        <div class="header-panel">
+            <div class="profile player-one">
+                <div class="avatar">🦁</div>
+                <div class="profile-info">
+                    <div class="label">Player One</div>
+                    <div class="name">Operative</div>
                 </div>
             </div>
-            <div class="vs-divider">VS</div>
-            <div class="player-side">
-                <h2>CPU</h2>
-                <div class="health-bar-bg">
-                    <div class="health-bar" id="cpu-health"></div>
+
+            <div class="score-display">
+                <span id="p-score">0</span> : <span id="ai-score">0</span>
+            </div>
+
+            <div class="profile system-ai">
+                <div class="profile-info" style="text-align: right;">
+                    <div class="label">System AI</div>
+                    <div class="name">Core Engine</div>
                 </div>
+                <div class="avatar">🤖</div>
             </div>
         </div>
 
-        <!-- Animated Battle Stage -->
-        <div class="battle-stage">
-            <div class="weapon-preview" id="player-preview">✊</div>
-            <div class="result-banner" id="result-banner">DRAW</div>
-            <div class="weapon-preview" id="cpu-preview">✊</div>
-        </div>
-
-        <!-- Choice Controls -->
-        <div class="choices-container">
-            <div class="choice-card" onclick="playRound('rock')">
-                <span class="icon">✊</span>
-                <span class="label">Rock</span>
+        <!-- Weapons Layout Core -->
+        <div class="weapons-grid">
+            <!-- Rock weapon card -->
+            <div class="weapon-card" data-weapon="rock">
+                <div class="weapon-icon-box">✊</div>
+                <button class="weapon-btn">Rock</button>
             </div>
-            <div class="choice-card" onclick="playRound('paper')">
-                <span class="icon">✋</span>
-                <span class="label">Paper</span>
+            <!-- Paper weapon card -->
+            <div class="weapon-card" data-weapon="paper">
+                <div class="weapon-icon-box">✋</div>
+                <button class="weapon-btn">Paper</button>
             </div>
-            <div class="choice-card" onclick="playRound('scissors')">
-                <span class="icon">✌️</span>
-                <span class="label">Scissors</span>
+            <!-- Scissors weapon card -->
+            <div class="weapon-card" data-weapon="scissors">
+                <div class="weapon-icon-box">✌️</div>
+                <button class="weapon-btn">Scissors</button>
             </div>
         </div>
-    </div>
 
-    <!-- End Game Overlay -->
-    <div class="overlay" id="end-overlay">
-        <h2 id="end-message">VICTORY</h2>
-        <button class="btn-restart" onclick="resetGame()">Rematch</button>
+        <!-- Dynamic Status Display Panel -->
+        <div class="result-panel" id="result-box">
+            <div class="result-title" style="color: var(--text-muted)">Awaiting Deployment</div>
+            <div class="result-details">Select your tactical gesture to initiate round</div>
+        </div>
     </div>
 
     <script>
-        const weapons = {
-            rock: { emoji: '✊', beats: 'scissors' },
-            paper: { emoji: '✋', beats: 'rock' },
-            scissors: { emoji: '✌️', beats: 'paper' }
+        let pScore = 0;
+        let aiScore = 0;
+
+        const resultBox = document.getElementById('result-box');
+        const pScoreDisplay = document.getElementById('p-score');
+        const aiScoreDisplay = document.getElementById('ai-score');
+
+        const weaponColors = {
+            rock: 'var(--neon-orange)',
+            paper: 'var(--neon-blue)',
+            scissors: 'var(--neon-green)'
         };
 
-        let playerHp = 5;
-        let cpuHp = 5;
-        const maxHp = 5;
-        let isPlaying = false;
-
-        const playerPreview = document.getElementById('player-preview');
-        const cpuPreview = document.getElementById('cpu-preview');
-        const resultBanner = document.getElementById('result-banner');
-        const playerHealthBar = document.getElementById('player-health');
-        const cpuHealthBar = document.getElementById('cpu-health');
-        const endOverlay = document.getElementById('end-overlay');
-        const endMessage = document.getElementById('end-message');
+        function getAIChoice() {
+            const options = ['rock', 'paper', 'scissors'];
+            return options[Math.floor(Math.random() * options.length)];
+        }
 
         function playRound(playerChoice) {
-            if (isPlaying) return; // Prevent spam clicking during animation
-            isPlaying = true;
-
-            // Clear previous match styles
-            resultBanner.classList.remove('show', 'cyan-text', 'magenta-text');
-
-            // Trigger arcade-like pre-fight shake animations
-            playerPreview.innerHTML = '✊';
-            cpuPreview.innerHTML = '✊';
-            playerPreview.classList.add('shake-left');
-            cpuPreview.classList.add('shake-right');
-
-            setTimeout(() => {
-                // Stop shaking animation after 600ms
-                playerPreview.classList.remove('shake-left');
-                cpuPreview.classList.remove('shake-right');
-
-                // Generate Choices
-                const weaponKeys = Object.keys(weapons);
-                const cpuChoice = weaponKeys[Math.floor(Math.random() * weaponKeys.length)];
-
-                // Render dynamic choices
-                playerPreview.innerHTML = weapons[playerChoice].emoji;
-                cpuPreview.innerHTML = weapons[cpuChoice].emoji;
-
-                // Evaluate Winner Logic
-                if (playerChoice === cpuChoice) {
-                    resultBanner.textContent = "DRAW";
-                } else if (weapons[playerChoice].beats === cpuChoice) {
-                    resultBanner.textContent = "HIT!";
-                    resultBanner.classList.add('cyan-text');
-                    cpuHp--;
-                    updateHealth();
-                } else {
-                    resultBanner.textContent = "DAMAGED!";
-                    resultBanner.classList.add('magenta-text');
-                    playerHp--;
-                    updateHealth();
-                }
-
-                // Show Round Winner Banner
-                resultBanner.classList.add('show');
-                
-                // Release animation lock
-                setTimeout(() => { isPlaying = false; }, 400);
-
-                // Check for Game Over Match point
-                checkGameOver();
-
-            }, 600);
-        }
-
-        function updateHealth() {
-            playerHealthBar.style.width = `${(playerHp / maxHp) * 100}%`;
-            cpuHealthBar.style.width = `${(cpuHp / maxHp) * 100}%`;
-        }
-
-        function checkGameOver() {
-            if (playerHp <= 0 || cpuHp <= 0) {
-                setTimeout(() => {
-                    if (playerHp > cpuHp) {
-                        endMessage.textContent = "VICTORY";
-                        endMessage.className = "cyan-text";
-                    } else {
-                        endMessage.textContent = "DEFEAT";
-                        endMessage.className = "magenta-text";
-                    }
-                    endOverlay.classList.add('active');
-                }, 600);
+            const aiChoice = getAIChoice();
+            let finalState = ''; 
+            
+            if (playerChoice === aiChoice) {
+                finalState = 'draw';
+            } else if (
+                (playerChoice === 'rock' && aiChoice === 'scissors') ||
+                (playerChoice === 'paper' && aiChoice === 'rock') ||
+                (playerChoice === 'scissors' && aiChoice === 'paper')
+            ) {
+                finalState = 'win';
+            } else {
+                finalState = 'lose';
             }
+
+            renderMatchResult(finalState, playerChoice, aiChoice);
         }
 
-        function resetGame() {
-            playerHp = maxHp;
-            cpuHp = maxHp;
-            updateHealth();
-            playerPreview.innerHTML = '✊';
-            cpuPreview.innerHTML = '✊';
-            resultBanner.classList.remove('show');
-            endOverlay.classList.remove('active');
-            isPlaying = false;
+        function renderMatchResult(state, pChoice, aiChoice) {
+            let titleEl = '';
+            let borderStyle = '';
+
+            if (state === 'win') {
+                pScore++;
+                pScoreDisplay.textContent = pScore;
+                titleEl = `<div class="result-title" style="color: var(--neon-green)">Result: You Win!</div>`;
+                borderStyle = '2px solid var(--neon-green)';
+            } else if (state === 'lose') {
+                aiScore++;
+                aiScoreDisplay.textContent = aiScore;
+                titleEl = `<div class="result-title" style="color: var(--neon-pink)">Result: AI Wins!</div>`;
+                borderStyle = '2px solid var(--neon-pink)';
+            } else {
+                titleEl = `<div class="result-title" style="color: #ffffff">Result: Draw Parity!</div>`;
+                borderStyle = '2px solid rgba(255, 255, 255, 0.2)';
+            }
+
+            // Injected inner data structure update
+            resultBox.innerHTML = `
+                ${titleEl}
+                <div class="result-details">
+                    You chose <strong style="color: ${weaponColors[pChoice]}">${pChoice}</strong> &nbsp;|&nbsp; 
+                    System AI chose <strong style="color: ${weaponColors[aiChoice]}">${aiChoice}</strong>
+                </div>
+            `;
+            resultBox.style.border = borderStyle;
         }
+
+        // Add Event Listeners seamlessly to cards
+        document.querySelectorAll('.weapon-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const selectedWeapon = card.getAttribute('data-weapon');
+                playRound(selectedWeapon);
+            });
+        });
     </script>
 </body>
 </html>

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ Cyber Arena: Rock Paper Scissors</title>
+    <style>
+        :root {
+            --bg-dark: #060814;
+            --neon-cyan: #00f2fe;
+            --neon-magenta: #ff007f;
+            --neon-purple: #7928ca;
+            --text-light: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border-glow: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Cyberpunk Ambient Lights */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            border-radius: 50%;
+            filter: blur(150px);
+            opacity: 0.15;
+            z-index: -1;
+        }
+        body::before { top: -5%; left: -5%; background: var(--neon-cyan); }
+        body::after { bottom: -5%; right: -5%; background: var(--neon-magenta); }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+            text-align: center;
+            text-shadow: 0 0 30px rgba(0, 242, 254, 0.2);
+        }
+
+        /* Arena Wrapper */
+        .arena-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glow);
+            border-radius: 32px;
+            padding: 2.5rem;
+            width: 90%;
+            max-width: 750px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+
+        /* Scoreboard & Health Bars */
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            gap: 20px;
+        }
+
+        .player-side {
+            flex: 1;
+        }
+
+        .player-side h2 {
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #8a99ad;
+            margin-bottom: 0.5rem;
+        }
+
+        .health-bar-bg {
+            background: rgba(255, 255, 255, 0.05);
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .health-bar {
+            height: 100%;
+            width: 100%;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #player-health { background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple)); }
+        #cpu-health { background: linear-gradient(90deg, var(--neon-purple), var(--neon-magenta)); }
+
+        .vs-divider {
+            font-size: 1.5rem;
+            font-weight: 900;
+            font-style: italic;
+            color: #475569;
+        }
+
+        /* Battle Showcase Stage */
+        .battle-stage {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 140px;
+            margin-bottom: 3rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            position: relative;
+        }
+
+        .weapon-preview {
+            font-size: 4.5rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.1));
+        }
+
+        .weapon-preview.shake-left { animation: shakeLeft 0.5s infinite; }
+        .weapon-preview.shake-right { animation: shakeRight 0.5s infinite; }
+
+        @keyframes shakeLeft {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(-15deg) scale(1.1); }
+        }
+        @keyframes shakeRight {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(15deg) scale(1.1); }
+        }
+
+        .result-banner {
+            position: absolute;
+            font-weight: 800;
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 6px 20px;
+            border-radius: 30px;
+            background: rgba(6, 8, 20, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+        }
+
+        .result-banner.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Interactive Choice Cards */
+        .choices-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .choice-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-glow);
+            border-radius: 20px;
+            padding: 1.5rem;
+            cursor: pointer;
+            flex: 1;
+            max-width: 140px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .choice-card .icon {
+            font-size: 3rem;
+            transition: transform 0.3s ease;
+        }
+
+        .choice-card .label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+        }
+
+        .choice-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-8px);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 10px 25px rgba(0, 242, 254, 0.15);
+        }
+
+        .choice-card:hover .icon {
+            transform: scale(1.2);
+        }
+
+        .choice-card:active {
+            transform: translateY(-2px);
+        }
+
+        /* Action Overlay Screen (Win/Lose Modal framework) */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(6, 8, 20, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .overlay h2 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            letter-spacing: 4px;
+        }
+
+        .btn-restart {
+            padding: 14px 40px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta));
+            color: white;
+            box-shadow: 0 0 30px rgba(255, 0, 127, 0.4);
+            transition: transform 0.2s ease;
+        }
+
+        .btn-restart:hover {
+            transform: scale(1.05);
+        }
+
+        /* Utilities */
+        .cyan-text { color: var(--neon-cyan) !important; text-shadow: 0 0 15px rgba(0,242,254,0.4); }
+        .magenta-text { color: var(--neon-magenta) !important; text-shadow: 0 0 15px rgba(255,0,127,0.4); }
+    </style>
+</head>
+<body>
+
+    <h1>Cyber Arena</h1>
+
+    <div class="arena-container">
+        <!-- Scoreboard & Health bars -->
+        <div class="scoreboard">
+            <div class="player-side">
+                <h2>Player</h2>
+                <div class="health-bar-bg">
+                    <div class="health-bar" id="player-health"></div>
+                </div>
+            </div>
+            <div class="vs-divider">VS</div>
+            <div class="player-side">
+                <h2>CPU</h2>
+                <div class="health-bar-bg">
+                    <div class="health-bar" id="cpu-health"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Animated Battle Stage -->
+        <div class="battle-stage">
+            <div class="weapon-preview" id="player-preview">✊</div>
+            <div class="result-banner" id="result-banner">DRAW</div>
+            <div class="weapon-preview" id="cpu-preview">✊</div>
+        </div>
+
+        <!-- Choice Controls -->
+        <div class="choices-container">
+            <div class="choice-card" onclick="playRound('rock')">
+                <span class="icon">✊</span>
+                <span class="label">Rock</span>
+            </div>
+            <div class="choice-card" onclick="playRound('paper')">
+                <span class="icon">✋</span>
+                <span class="label">Paper</span>
+            </div>
+            <div class="choice-card" onclick="playRound('scissors')">
+                <span class="icon">✌️</span>
+                <span class="label">Scissors</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- End Game Overlay -->
+    <div class="overlay" id="end-overlay">
+        <h2 id="end-message">VICTORY</h2>
+        <button class="btn-restart" onclick="resetGame()">Rematch</button>
+    </div>
+
+    <script>
+        const weapons = {
+            rock: { emoji: '✊', beats: 'scissors' },
+            paper: { emoji: '✋', beats: 'rock' },
+            scissors: { emoji: '✌️', beats: 'paper' }
+        };
+
+        let playerHp = 5;
+        let cpuHp = 5;
+        const maxHp = 5;
+        let isPlaying = false;
+
+        const playerPreview = document.getElementById('player-preview');
+        const cpuPreview = document.getElementById('cpu-preview');
+        const resultBanner = document.getElementById('result-banner');
+        const playerHealthBar = document.getElementById('player-health');
+        const cpuHealthBar = document.getElementById('cpu-health');
+        const endOverlay = document.getElementById('end-overlay');
+        const endMessage = document.getElementById('end-message');
+
+        function playRound(playerChoice) {
+            if (isPlaying) return; // Prevent spam clicking during animation
+            isPlaying = true;
+
+            // Clear previous match styles
+            resultBanner.classList.remove('show', 'cyan-text', 'magenta-text');
+
+            // Trigger arcade-like pre-fight shake animations
+            playerPreview.innerHTML = '✊';
+            cpuPreview.innerHTML = '✊';
+            playerPreview.classList.add('shake-left');
+            cpuPreview.classList.add('shake-right');
+
+            setTimeout(() => {
+                // Stop shaking animation after 600ms
+                playerPreview.classList.remove('shake-left');
+                cpuPreview.classList.remove('shake-right');
+
+                // Generate Choices
+                const weaponKeys = Object.keys(weapons);
+                const cpuChoice = weaponKeys[Math.floor(Math.random() * weaponKeys.length)];
+
+                // Render dynamic choices
+                playerPreview.innerHTML = weapons[playerChoice].emoji;
+                cpuPreview.innerHTML = weapons[cpuChoice].emoji;
+
+                // Evaluate Winner Logic
+                if (playerChoice === cpuChoice) {
+                    resultBanner.textContent = "DRAW";
+                } else if (weapons[playerChoice].beats === cpuChoice) {
+                    resultBanner.textContent = "HIT!";
+                    resultBanner.classList.add('cyan-text');
+                    cpuHp--;
+                    updateHealth();
+                } else {
+                    resultBanner.textContent = "DAMAGED!";
+                    resultBanner.classList.add('magenta-text');
+                    playerHp--;
+                    updateHealth();
+                }
+
+                // Show Round Winner Banner
+                resultBanner.classList.add('show');
+                
+                // Release animation lock
+                setTimeout(() => { isPlaying = false; }, 400);
+
+                // Check for Game Over Match point
+                checkGameOver();
+
+            }, 600);
+        }
+
+        function updateHealth() {
+            playerHealthBar.style.width = `${(playerHp / maxHp) * 100}%`;
+            cpuHealthBar.style.width = `${(cpuHp / maxHp) * 100}%`;
+        }
+
+        function checkGameOver() {
+            if (playerHp <= 0 || cpuHp <= 0) {
+                setTimeout(() => {
+                    if (playerHp > cpuHp) {
+                        endMessage.textContent = "VICTORY";
+                        endMessage.className = "cyan-text";
+                    } else {
+                        endMessage.textContent = "DEFEAT";
+                        endMessage.className = "magenta-text";
+                    }
+                    endOverlay.classList.add('active');
+                }, 600);
+            }
+        }
+
+        function resetGame() {
+            playerHp = maxHp;
+            cpuHp = maxHp;
+            updateHealth();
+            playerPreview.innerHTML = '✊';
+            cpuPreview.innerHTML = '✊';
+            resultBanner.classList.remove('show');
+            endOverlay.classList.remove('active');
+            isPlaying = false;
+        }
+    </script>
+</body>
+</html>
